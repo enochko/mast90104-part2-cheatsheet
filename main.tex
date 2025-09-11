@@ -1,0 +1,82 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{amssymb,amsmath,amsthm,amsfonts}
+\usepackage{multicol,multirow}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+\usepackage{datetime2}
+\DTMsetdatestyle{iso}
+
+\geometry{a4paper,
+    top=0.5cm,
+    left=0.5cm,
+    right=0.5cm,
+    bottom=0.5cm
+    }
+
+\pagestyle{empty}
+
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+% -----------------------------------------------------------------------
+
+\title{MAST90104 Part 2 Cheat Sheet for Enoch Ko (147938)}
+
+\begin{document}
+
+\raggedright
+\footnotesize
+\begin{center}
+     \Large{\textbf{MAST90104 Part 2 Cheat Sheet for Enoch Ko (147938)}} \\
+\end{center}
+\begin{multicols}{3}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+Compiled: \DTMnow\\
+\section{One-Way ANOVA}
+Necessary and sufficient conditions for full rank $XC$:
+Let $\mathbf X$ denote a $n\times p$ matrix, and $\mathbf C$ a $p\times r$ matrix, where $r\le p\le n$. Suppose both matrices have rank $r$.
+
+Rearrange the row and columns of $\mathbf X$ and the rows of $\mathbf{C}$ such that:
+$\mathbf X= \left[ \begin{array}{c|c}
+  \mathbf X& \mathbf X_r\mathbf D \\
+  \hline
+  \mathbf X_{n-r} & \mathbf X_{n-r}\mathbf D
+\end{array} \right]$, $\mathbf C= \left[ \begin{array}{c}
+  \mathbf C_r \\
+  \hline
+  \mathbf E\mathbf C_r
+\end{array} \right]$
+
+$\mathbf X_r, \mathbf X_{n-r}, \mathbf D, \mathbf C_r, \mathbf E$ are respectively $r\times r, n-r\times x, x\times p-r, r\times r, p-r\times r$,
+and $\mathbf X_r, \mathbf C_r$ are both rank r.
+Then $\mathbf{XC}$ is full rank $\iff \mathbf I_r+\mathbf D\mathbf E$ has rank $r$. (6.1)
+\medskip
+\vfill
+Last updated:
+2025-09-12 T00-29-16\\
+Compiled: \DTMnow\\
+\hrule
+Enoch Ko (147934), University of Melbourne. Seat No.
+$180/100 = 1.8$min.
+$1 \mapsto 1.8 / 2 \mapsto 3.6 / 3 \mapsto 5.4 / 4 \mapsto 7.2 / 5 \mapsto 9 / 6 \mapsto 10.8$\\
+\end{multicols}
+\end{document}
