@@ -42,9 +42,6 @@
 
 \raggedright
 \footnotesize
-\begin{center}
-     \Large{\textbf{MAST90104 Part 2 Cheat Sheet for Enoch Ko (147938)}} \\
-\end{center}
 \begin{multicols}{3}
 \setlength{\premulticols}{1pt}
 \setlength{\postmulticols}{1pt}
@@ -52,27 +49,249 @@
 \setlength{\columnsep}{2pt}
 Compiled: \DTMnow\\
 \section{One-Way ANOVA}
-Necessary and sufficient conditions for full rank $XC$:
-Let $\mathbf X$ denote a $n\times p$ matrix, and $\mathbf C$ a $p\times r$ matrix, where $r\le p\le n$. Suppose both matrices have rank $r$.
-
-Rearrange the row and columns of $\mathbf X$ and the rows of $\mathbf{C}$ such that:
+\subsection{Factor model formulas}
+$y_{ij}=\mu+\tau_i+\epsilon_{ij}$ for $i=1, 2, \dots, k; j=1, 2, \dots, n_i$.\\
+$k$: \# of populations/treatments.\\
+$n_i$: observations from $i$th population.\\
+$\mu$: overall mean.\\
+\medskip
+\subsection{Standard Estimator for Variance:}
+$s^2=\frac{\mathbf y^T\mathbf y-\mathbf y^T\mathbf X\widehat{\boldsymbol\beta} }{n-p}=\frac{\mathbf y^T\mathbf y-\mathbf y^T\overset{\sim}{\mathbf X}\widehat{\boldsymbol\gamma} }{n-p}=\frac{\sum(n_i-1)s_i^2}{\sum(n_i-1)}$\\
+$s_i^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}(y_{ij}-\bar y_{i})^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}\left(y_{ij}-\frac{1}{n_i}\sum_{k=1}^{n_i}y_{ik}\right)^2$\\
+$\widehat{\mathbf y}=\mathbf X\widehat{\boldsymbol\beta}=\overset{\sim}{\mathbf X}\widehat{\boldsymbol\gamma}=\overset{\sim}{\mathbf X}(\overset{\sim}{\mathbf X}^T\overset{\sim}{\mathbf X})^{-1}\overset{\sim}{\mathbf X}^T\mathbf y=\overset{\sim}{\mathbf H}\mathbf y$\\
+\medskip
+\subsection{Reparameterisation}
+$\mathrm{r}(\mathbf X)=r$, $n\times p$ matrix. $r\le p\le n$ (not full rank):\\
+$\mathrm{C}(\mathbf X)=r$, $p\times r$ matrix (full rank).\\
+Partition $\mathbf{XC}$:
 $\mathbf X= \left[ \begin{array}{c|c}
-  \mathbf X& \mathbf X_r\mathbf D \\
+  \mathbf X_r& \mathbf X_r\mathbf D \\
   \hline
   \mathbf X_{n-r} & \mathbf X_{n-r}\mathbf D
 \end{array} \right]$, $\mathbf C= \left[ \begin{array}{c}
   \mathbf C_r \\
   \hline
   \mathbf E\mathbf C_r
-\end{array} \right]$
+\end{array} \right]$\\
+$\tilde{\mathbf X}=\mathbf{XC}$ is full rank $\iff \mathrm{r}(\mathbf I_r+\mathbf D\mathbf E)=r$ . (6.1)\\
+$\boldsymbol\gamma=[(\mathbf I_r+\mathbf D\mathbf E)\mathbf C_r]^{-1}\mathbf X_r^{-1}\mathbf X_r\begin{bmatrix}\mathbf I_r|\mathbf D\end{bmatrix}\boldsymbol\beta=[(\mathbf I_r+\mathbf D\mathbf E)\mathbf C_r]^{-1}(\boldsymbol\beta_r+\mathbf D\boldsymbol\beta_{p-r})$\\
+\medskip
+\subsection{Choice of C}
+$\widehat{\mathbf y}, \mathbf e, \mathrm{SS}_{\mathrm{res} }, \mathrm{SS}_{\mathrm{reg} }, s^2$ invariant to choice of $\mathbf C$ (6.2).\\
+\subsubsection{C Basic}
+$\mathbf C_{\text{basic}}=\begin{bmatrix}\boldsymbol0_{1\times k}\\\hline\mathbf I_k\end{bmatrix}$;\quad
+$\overset{\sim}{\mathbf X}=\mathbf {XC}=\begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol0_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol0_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_2\\\gamma_3\end{bmatrix}$;\quad
+$\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\tau_1\\\gamma_2=\mu+\tau_2\\\gamma_3=\mu+\tau_3\end{bmatrix}$\\
+\medskip
+\subsubsection{C Treatment}
+$\mathbf C_{\text{trt}}=
+\left[
+    \begin{array}{c|c}
+        \boldsymbol1&\boldsymbol0_{1\times(k-1)}\\
+        \hline
+        0\dots&\dots\boldsymbol0_{1\times k}\\
+        \hline
+        \boldsymbol0_{(k-1)\times 1}&\mathbf I_{k-1}
+    \end{array}
+\right]$;\quad
+$\overset{\sim}{\mathbf X}=\mathbf {XC}= \begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu_1\\\mu_2\\\mu_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_1+\gamma_2\\\gamma_1+\gamma_3\end{bmatrix}$;\quad
+$\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\tau_1\\\gamma_2=\tau_2-\tau_1\\\gamma_3=\tau_3-\tau_1\end{bmatrix}$;\quad
+\medskip
+\subsubsection{C Sum}
+$\mathbf C_{\text{sum}}=
+\left[
+\begin{array}{c|c}
+1&\boldsymbol0_{1\times(k-1)}\\
+\hline
+\boldsymbol0_{k\times1}&\mathbf I_{k-1}\\
+\hline
+0\;\vdots&\boldsymbol{-1}_{1\times (k-1)}
+\end{array}
+\right]$;\quad
+$\overset{\sim}{\mathbf X}=\mathbf {XC}= \begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1+\gamma_2\\\gamma_1+\gamma_3\\\gamma_1-\gamma_2-\gamma_3\end{bmatrix}$;\quad
+$\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\frac{1}{3}\sum_{i=1}^3\tau_i\\\gamma_2=\mu+\tau_1-\frac{1}{3}\sum_{i=1}^3\tau_i\\\gamma_3=\mu+\tau_2-\frac{1}{3}\sum_{i=1}^3\tau_i\end{bmatrix}$\\
+\medskip
+\subsection{Estimable}
+$\mathbf t^T\boldsymbol\beta$ is estimable if $\exists\;\mathbf c$  such that $\mathbb E [\mathbf c^T\mathbf y]=\mathbf t^T\boldsymbol\beta$ (6.3).\\
+\textbf{Always estimable}:
+\begin{itemize}
+    \item Each entry of $\mathbf X\boldsymbol\beta$ (6.4). $\mathbb E(v_i^T\mathbf y)=v_i^T\mathbf X\boldsymbol\beta=(\mathbf X\boldsymbol\beta)_i$
+    \item Population means ($\mu+\tau_i$).
+    \item  Contrasts ($\tau_i-\tau_j$).
+    \item Any linear contrast that sum to 0 ($\sum_{i=1}^k a_i\tau_i$, with $\sum a_i=0$).
+\end{itemize}
+\textbf{Not estimable}: $\mu$ by itself; individual $\tau_i$ by itself.\\
+\medskip
+$\mathbf t^T\boldsymbol\beta=\mathbf c^T\mathbf X\boldsymbol\beta=\mathbf c^T\overset{\sim}{\mathbf X}\boldsymbol\gamma$\\
+If $\mathbf t_i^T\boldsymbol\beta$ estimable, then $z=a_1\mathbf t_1^T\boldsymbol\beta+\dots+a_k\mathbf t_k^T\boldsymbol\beta$ is estimable (6.6).\\
+\textbf{Treatment contrast}: $z=a_1(\mu+\tau_1)+\dots+a_k(\mu+\boldsymbol\tau_k)$ is estimable.\\
+$\tau_i-\tau_j=(\mu+\tau_i)-(\mu+\tau_j)$ estimated by $\bar{y}_i-\bar{y}_j$\\
+\newpage
+\section{General Linear Hypothesis (GLH) Test — Quick Sheet}
 
-$\mathbf X_r, \mathbf X_{n-r}, \mathbf D, \mathbf C_r, \mathbf E$ are respectively $r\times r, n-r\times x, x\times p-r, r\times r, p-r\times r$,
-and $\mathbf X_r, \mathbf C_r$ are both rank r.
-Then $\mathbf{XC}$ is full rank $\iff \mathbf I_r+\mathbf D\mathbf E$ has rank $r$. (6.1)
+\textbf{Model \& Hypothesis.}
+\[
+y=X\beta+\varepsilon,\quad \varepsilon\sim(0,\sigma^2 I_n),\qquad
+H_0:\;L\beta=\delta,\; L\in\mathbb R^{r\times p},\; \mathrm{rank}(L)=r
+\]
+
+\textbf{(1) Put the constraint in estimates.}
+\[
+\text{Gap vector: } g:=L\hat\beta-\delta
+\]
+
+\textbf{(2) Reparameterise if $X$ is not full rank.} Pick full-rank $C$ so that $\tilde X:=XC$ has independent columns and $X\beta=\tilde X\gamma$. Rewrite $H_0$ as $\tilde L\gamma=\delta$ and proceed with tildes.
+
+\textbf{(3) Gram matrix.}
+\[
+G:=X^\top X\quad (\text{or } \tilde G:=\tilde X^\top \tilde X)
+\]
+
+\textbf{(4) Hat matrix \& residual sum of squares.}
+\[
+H:=X(X^\top X)^{-1}X^\top,\quad \hat y=Hy,\quad
+SS_{\mathrm{Res}}:=y^\top(I-H)y,\quad \mathrm{MSE}:=\frac{SS_{\mathrm{Res}}}{n-p}
+\]
+
+\textbf{(5) Constraint on $\hat\beta$.}
+\[
+\hat\beta=(X^\top X)^{-1}X^\top y,\qquad
+S:=L(X^\top X)^{-1}L^\top
+\]
+
+\textbf{(6) ``Write half the top first'' then assemble the quadratic form.}
+\[
+\text{Top (numerator part)}:\quad Q:=g^\top S^{-1}g
+\]
+
+\textbf{(7) Test statistic \& decision.}
+\[
+F=\frac{(Q/r)}{\mathrm{MSE}}=\frac{g^\top S^{-1}g/r}{SS_{\mathrm{Res}}/(n-p)}
+\ \ \sim\ F_{r,\,n-p}\ \text{ under }H_0;
+\quad \text{reject if }F\ge F_{1-\alpha;\,r,\,n-p}.
+\]
+
+\textbf{Two-RSS (equivalent) form.} Fit restricted ($H_0$) and full models:
+\[
+F=\frac{\big(SS_{\mathrm{Res}}^{H_0}-SS_{\mathrm{Res}}^{H_1}\big)/r}{SS_{\mathrm{Res}}^{H_1}/(n-p)}
+\ \ \sim\ F_{r,\,n-p}.
+\]
+
+\textbf{Notes.} $X^\top X$ is the Gram matrix; $\mathrm{Var}(\hat\beta)=\sigma^2(X^\top X)^{-1}$. Reparameterisations that make $\tilde X$ full rank leave $\hat y$, $SS_{\mathrm{Res}}$, MSE, and the $F$ test unchanged.
+
+\medskip
+\section{Coding Choices for One-Way ANOVA (High-School Intuition)}
+We start from the over-parameterised model with intercept:
+\[
+\beta=\begin{bmatrix}\mu\\ \tau_1\\ \vdots\\ \tau_k\end{bmatrix},\quad
+\text{and reparameterise } \beta=C\,\gamma \text{ so } \tilde X=XC \text{ is full rank.}
+\]
+Use the coding that matches how you want to \emph{explain} results.
+
+\subsection{Treatment (Reference) Coding: ``each group vs a baseline''}
+Pick a baseline level (say level $k$). Keep intercept and $k-1$ group effects vs baseline.
+\[
+\gamma=\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\end{bmatrix},\qquad
+C_{\text{treat}}=
+\begin{bmatrix}
+1 & 0      & \cdots & 0 \\
+0 & 1      & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0      & \cdots & 1 \\
+0 & 0      & \cdots & 0
+\end{bmatrix}_{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\\ 0\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{treat}}=
+\begin{bmatrix}
+1&0&0\\
+0&1&0\\
+0&0&1\\
+0&0&0
+\end{bmatrix},\quad
+\gamma=(\mu,\theta_A,\theta_B),\quad
+\theta_A=\tau_A,\ \theta_B=\tau_B,\ \tau_C=0.
+\]
+\textit{How you'd say it (scores $A=70,B=80,C=90$ with $C$ baseline):}
+Intercept $\approx 90$; $A$ is $-20$ vs $C$, $B$ is $-10$ vs $C$.
+
+\subsection{Sum (Effect) Coding: ``each group vs the overall average''}
+Enforce $\sum_{i=1}^k\tau_i=0$. Keep $k-1$ independent effects; the last is implied.
+\[
+\gamma=\begin{bmatrix}\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\end{bmatrix},\qquad
+C_{\text{sum}}=
+\begin{bmatrix}
+1 & 0      & \cdots & 0 \\
+0 & 1      & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0      & \cdots & 1 \\
+0 & -1     & \cdots & -1
+\end{bmatrix}_{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}
+\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\\ -\sum_{j=1}^{k-1}\alpha_j
+\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{sum}}=
+\begin{bmatrix}
+1&0&0\\
+0&1&0\\
+0&0&1\\
+0&-1&-1
+\end{bmatrix},\quad
+\gamma=(\mu,\alpha_A,\alpha_B),\ 
+\tau_C=-(\alpha_A+\alpha_B).
+\]
+\textit{How you'd say it (scores $70,80,90$):}
+Grand mean $=80$ (intercept). $A$ is $-10$ from average, $B$ is $0$, so $C$ is $+10$ (they must sum to $0$).
+
+\subsection{Basic (Cell-Means) Coding: ``parameters are the group means''}
+Let parameters \emph{be} the group means $m_i=\mu+\tau_i$; no baseline, no sums.
+\[
+\gamma=\begin{bmatrix}m_1\\ \vdots\\ m_k\end{bmatrix},\qquad
+\bar m=\frac{1}{k}\sum_{i=1}^k m_i,\quad
+\mu=\bar m,\ \tau_i=m_i-\bar m,
+\]
+\[
+C_{\text{basic}}=
+\begin{bmatrix}
+\frac{1}{k}\mathbf 1_k^\top\\[3pt]
+I_k-\frac{1}{k}\mathbf 1_k\mathbf 1_k^\top
+\end{bmatrix}\in\mathbb R^{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}
+\bar m\\ m_1-\bar m\\ \vdots\\ m_k-\bar m
+\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{basic}}=
+\begin{bmatrix}
+\frac{1}{3}&\frac{1}{3}&\frac{1}{3}\\
+\frac{2}{3}&-\frac{1}{3}&-\frac{1}{3}\\
+-\frac{1}{3}&\frac{2}{3}&-\frac{1}{3}\\
+-\frac{1}{3}&-\frac{1}{3}&\frac{2}{3}
+\end{bmatrix},\quad \gamma=(m_A,m_B,m_C).
+\]
+\textit{How you'd say it (scores $70,80,90$):}
+The parameters are simply the group means: $A=70,\ B=80,\ C=90$.
+
+\medskip
 \medskip
 \vfill
 Last updated:
-2025-09-12 T00-29-16\\
+2025-09-12 T00-50-58\\
 Compiled: \DTMnow\\
 \hrule
 Enoch Ko (147934), University of Melbourne. Seat No.
