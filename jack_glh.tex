@@ -1,0 +1,208 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{amssymb,amsmath,amsthm,amsfonts}
+\usepackage{multicol,multirow}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+\usepackage{datetime2}
+\DTMsetdatestyle{iso}
+
+\geometry{a4paper,
+    top=0.5cm,
+    left=0.5cm,
+    right=0.5cm,
+    bottom=0.5cm
+    }
+
+\pagestyle{empty}
+
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+% -----------------------------------------------------------------------
+
+\title{MAST90104 Part 2 Cheat Sheet for Enoch Ko (147938)}
+
+\begin{document}
+
+\raggedright
+\footnotesize
+%Jack's Cheatsheet%
+\begin{multicols}{2}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+\section{General Linear Hypothesis (GLH) Test — Quick Sheet}
+
+\textbf{Model \& Hypothesis.}
+\[
+y=X\beta+\varepsilon,\quad \varepsilon\sim(0,\sigma^2 I_n),\qquad
+H_0:\;L\beta=\delta,\; L\in\mathbb R^{r\times p},\; \mathrm{rank}(L)=r
+\]
+
+\textbf{(1) Put the constraint in estimates.}
+\[
+\text{Gap vector: } g:=L\hat\beta-\delta
+\]
+
+\textbf{(2) Reparameterise if $X$ is not full rank.} Pick full-rank $C$ so that $\tilde X:=XC$ has independent columns and $X\beta=\tilde X\gamma$. Rewrite $H_0$ as $\tilde L\gamma=\delta$ and proceed with tildes.
+
+\textbf{(3) Gram matrix.}
+\[
+G:=X^\top X\quad (\text{or } \tilde G:=\tilde X^\top \tilde X)
+\]
+
+\textbf{(4) Hat matrix \& residual sum of squares.}
+\[
+H:=X(X^\top X)^{-1}X^\top,\quad \hat y=Hy,\quad
+SS_{\mathrm{Res}}:=y^\top(I-H)y,\quad \mathrm{MSE}:=\frac{SS_{\mathrm{Res}}}{n-p}
+\]
+
+\textbf{(5) Constraint on $\hat\beta$.}
+\[
+\hat\beta=(X^\top X)^{-1}X^\top y,\qquad
+S:=L(X^\top X)^{-1}L^\top
+\]
+
+\textbf{(6) ``Write half the top first'' then assemble the quadratic form.}
+\[
+\text{Top (numerator part)}:\quad Q:=g^\top S^{-1}g
+\]
+
+\textbf{(7) Test statistic \& decision.}
+\[
+F=\frac{(Q/r)}{\mathrm{MSE}}=\frac{g^\top S^{-1}g/r}{SS_{\mathrm{Res}}/(n-p)}
+\ \ \sim\ F_{r,\,n-p}\ \text{ under }H_0;
+\quad \text{reject if }F\ge F_{1-\alpha;\,r,\,n-p}.
+\]
+
+\textbf{Two-RSS (equivalent) form.} Fit restricted ($H_0$) and full models:
+\[
+F=\frac{\big(SS_{\mathrm{Res}}^{H_0}-SS_{\mathrm{Res}}^{H_1}\big)/r}{SS_{\mathrm{Res}}^{H_1}/(n-p)}
+\ \ \sim\ F_{r,\,n-p}.
+\]
+
+\textbf{Notes.} $X^\top X$ is the Gram matrix; $\mathrm{Var}(\hat\beta)=\sigma^2(X^\top X)^{-1}$. Reparameterisations that make $\tilde X$ full rank leave $\hat y$, $SS_{\mathrm{Res}}$, MSE, and the $F$ test unchanged.
+
+\medskip
+\section{Coding Choices for One-Way ANOVA (High-School Intuition)}
+We start from the over-parameterised model with intercept:
+\[
+\beta=\begin{bmatrix}\mu\\ \tau_1\\ \vdots\\ \tau_k\end{bmatrix},\quad
+\text{and reparameterise } \beta=C\,\gamma \text{ so } \tilde X=XC \text{ is full rank.}
+\]
+Use the coding that matches how you want to \emph{explain} results.
+
+\subsection{Treatment (Reference) Coding: ``each group vs a baseline''}
+Pick a baseline level (say level $k$). Keep intercept and $k-1$ group effects vs baseline.
+\[
+\gamma=\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\end{bmatrix},\qquad
+C_{\text{treat}}=
+\begin{bmatrix}
+1 & 0      & \cdots & 0 \\
+0 & 1      & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0      & \cdots & 1 \\
+0 & 0      & \cdots & 0
+\end{bmatrix}_{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\\ 0\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{treat}}=
+\begin{bmatrix}
+1&0&0\\
+0&1&0\\
+0&0&1\\
+0&0&0
+\end{bmatrix},\quad
+\gamma=(\mu,\theta_A,\theta_B),\quad
+\theta_A=\tau_A,\ \theta_B=\tau_B,\ \tau_C=0.
+\]
+\textit{How you'd say it (scores $A=70,B=80,C=90$ with $C$ baseline):}
+Intercept $\approx 90$; $A$ is $-20$ vs $C$, $B$ is $-10$ vs $C$.
+
+\subsection{Sum (Effect) Coding: ``each group vs the overall average''}
+Enforce $\sum_{i=1}^k\tau_i=0$. Keep $k-1$ independent effects; the last is implied.
+\[
+\gamma=\begin{bmatrix}\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\end{bmatrix},\qquad
+C_{\text{sum}}=
+\begin{bmatrix}
+1 & 0      & \cdots & 0 \\
+0 & 1      & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0      & \cdots & 1 \\
+0 & -1     & \cdots & -1
+\end{bmatrix}_{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}
+\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\\ -\sum_{j=1}^{k-1}\alpha_j
+\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{sum}}=
+\begin{bmatrix}
+1&0&0\\
+0&1&0\\
+0&0&1\\
+0&-1&-1
+\end{bmatrix},\quad
+\gamma=(\mu,\alpha_A,\alpha_B),\ 
+\tau_C=-(\alpha_A+\alpha_B).
+\]
+\textit{How you'd say it (scores $70,80,90$):}
+Grand mean $=80$ (intercept). $A$ is $-10$ from average, $B$ is $0$, so $C$ is $+10$ (they must sum to $0$).
+
+\subsection{Basic (Cell-Means) Coding: ``parameters are the group means''}
+Let parameters \emph{be} the group means $m_i=\mu+\tau_i$; no baseline, no sums.
+\[
+\gamma=\begin{bmatrix}m_1\\ \vdots\\ m_k\end{bmatrix},\qquad
+\bar m=\frac{1}{k}\sum_{i=1}^k m_i,\quad
+\mu=\bar m,\ \tau_i=m_i-\bar m,
+\]
+\[
+C_{\text{basic}}=
+\begin{bmatrix}
+\frac{1}{k}\mathbf 1_k^\top\\[3pt]
+I_k-\frac{1}{k}\mathbf 1_k\mathbf 1_k^\top
+\end{bmatrix}\in\mathbb R^{(k+1)\times k},
+\quad
+\beta=
+\begin{bmatrix}
+\bar m\\ m_1-\bar m\\ \vdots\\ m_k-\bar m
+\end{bmatrix}.
+\]
+\textbf{Concrete for $k=3$:}
+\[
+C_{\text{basic}}=
+\begin{bmatrix}
+\frac{1}{3}&\frac{1}{3}&\frac{1}{3}\\
+\frac{2}{3}&-\frac{1}{3}&-\frac{1}{3}\\
+-\frac{1}{3}&\frac{2}{3}&-\frac{1}{3}\\
+-\frac{1}{3}&-\frac{1}{3}&\frac{2}{3}
+\end{bmatrix},\quad \gamma=(m_A,m_B,m_C).
+\]
+\textit{How you'd say it (scores $70,80,90$):}
+The parameters are simply the group means: $A=70,\ B=80,\ C=90$.
+\end{multicols}
+\end{document}

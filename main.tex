@@ -6,6 +6,7 @@
 \usepackage[landscape]{geometry}
 \usepackage[colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
 \usepackage{datetime2}
+\usepackage{booktabs}
 \DTMsetdatestyle{iso}
 
 \geometry{a4paper,
@@ -48,21 +49,24 @@
 \setlength{\multicolsep}{1pt}
 \setlength{\columnsep}{2pt}
 Compiled: \DTMnow\\
-\section{One-Way ANOVA}
+\textbf{Conventions:} $n$ obs; $p$ params (incl. intercept); $k$ = \# slopes; $r(\cdot)$ = rank; $H=X(X^T X)^{-1}X^T$; $s^2=\mathrm{SSE}/(n-p)$; $\Delta D = D_R - D_F=\,2s+\frac{D^{B}}{\phi}-\frac{D^{A}}{\phi}.$; AIC $=2k-2\ell(\hat\theta)$.\\
+\textbf{R one-liners:} \verb|lm(y~X)|; \verb|glm(y~X, family=binomial/poisson)|; offsets: \verb|offset(log t)|; WLS: \verb|lm(..., weights=1/sigma2_i)|; step-AIC: \verb|step(glm(...))|.\\
+\section{Module 6: One-Way ANOVA}
 \subsection{Factor model formulas}
 $y_{ij}=\mu+\tau_i+\epsilon_{ij}$ for $i=1, 2, \dots, k; j=1, 2, \dots, n_i$.\\
 $k$: \# of populations/treatments.\\
 $n_i$: observations from $i$th population.\\
 $\mu$: overall mean.\\
-\medskip
+Normal equations (OLS):$\mathbf X^T\mathbf X\widehat{\boldsymbol\beta} = \mathbf X^T\mathbf y$
+
 \subsection{Standard Estimator for Variance:}
-$s^2=\frac{\mathbf y^T\mathbf y-\mathbf y^T\mathbf X\widehat{\boldsymbol\beta} }{n-p}=\frac{\mathbf y^T\mathbf y-\mathbf y^T\overset{\sim}{\mathbf X}\widehat{\boldsymbol\gamma} }{n-p}=\frac{\sum(n_i-1)s_i^2}{\sum(n_i-1)}$\\
+$s^2=\frac{\mathbf y^T\mathbf y-\mathbf y^T\mathbf X\widehat{\boldsymbol\beta} }{n-p}=\frac{\mathbf y^T\mathbf y-\mathbf y^T\widetilde{\mathbf X}\widehat{\boldsymbol\gamma} }{n-p}=\frac{\sum(n_i-1)s_i^2}{\sum(n_i-1)}$\\
 $s_i^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}(y_{ij}-\bar y_{i})^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}\left(y_{ij}-\frac{1}{n_i}\sum_{k=1}^{n_i}y_{ik}\right)^2$\\
-$\widehat{\mathbf y}=\mathbf X\widehat{\boldsymbol\beta}=\overset{\sim}{\mathbf X}\widehat{\boldsymbol\gamma}=\overset{\sim}{\mathbf X}(\overset{\sim}{\mathbf X}^T\overset{\sim}{\mathbf X})^{-1}\overset{\sim}{\mathbf X}^T\mathbf y=\overset{\sim}{\mathbf H}\mathbf y$\\
-\medskip
+$\widehat{\mathbf y}=\mathbf X\widehat{\boldsymbol\beta}=\widetilde{\mathbf X}\widehat{\boldsymbol\gamma}=\widetilde{\mathbf X}(\widetilde{\mathbf X}^T\widetilde{\mathbf X})^{-1}\widetilde{\mathbf X}^T\mathbf y=\widetilde{\mathbf H}\mathbf y$\\
+
 \subsection{Reparameterisation}
 $\mathrm{r}(\mathbf X)=r$, $n\times p$ matrix. $r\le p\le n$ (not full rank):\\
-$\mathrm{C}(\mathbf X)=r$, $p\times r$ matrix (full rank).\\
+$\mathrm{r}(\mathbf C)=r$, $p\times r$ matrix (full rank).\\
 Partition $\mathbf{XC}$:
 $\mathbf X= \left[ \begin{array}{c|c}
   \mathbf X_r& \mathbf X_r\mathbf D \\
@@ -73,17 +77,41 @@ $\mathbf X= \left[ \begin{array}{c|c}
   \hline
   \mathbf E\mathbf C_r
 \end{array} \right]$\\
-$\tilde{\mathbf X}=\mathbf{XC}$ is full rank $\iff \mathrm{r}(\mathbf I_r+\mathbf D\mathbf E)=r$ . (6.1)\\
+$\widetilde{\mathbf X}=\mathbf{XC}$ is full rank $\iff \mathrm{r}(\mathbf I_r+\mathbf D\mathbf E)=r$ . (6.1)\\
 $\boldsymbol\gamma=[(\mathbf I_r+\mathbf D\mathbf E)\mathbf C_r]^{-1}\mathbf X_r^{-1}\mathbf X_r\begin{bmatrix}\mathbf I_r|\mathbf D\end{bmatrix}\boldsymbol\beta=[(\mathbf I_r+\mathbf D\mathbf E)\mathbf C_r]^{-1}(\boldsymbol\beta_r+\mathbf D\boldsymbol\beta_{p-r})$\\
-\medskip
+
 \subsection{Choice of C}
 $\widehat{\mathbf y}, \mathbf e, \mathrm{SS}_{\mathrm{res} }, \mathrm{SS}_{\mathrm{reg} }, s^2$ invariant to choice of $\mathbf C$ (6.2).\\
+
 \subsubsection{C Basic}
 $\mathbf C_{\text{basic}}=\begin{bmatrix}\boldsymbol0_{1\times k}\\\hline\mathbf I_k\end{bmatrix}$;\quad
-$\overset{\sim}{\mathbf X}=\mathbf {XC}=\begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol0_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol0_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
-$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_2\\\gamma_3\end{bmatrix}$;\quad
+For k=3:
+$\widetilde{\mathbf X}=\mathbf {XC}=\begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol0_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol0_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\widetilde{\mathbf X}^T\widetilde{\mathbf X}
+=\operatorname{diag}(n_1,n_2,n_3);
+\quad
+(\widetilde{\mathbf X}^T\widetilde{\mathbf X})^{-1}
+=\operatorname{diag}(\frac{1}{n_1},\frac{1}{n_2},\frac{1}{n_3});$
+$\widehat{\boldsymbol\gamma}
+=\big(\widetilde{\mathbf X}^T\widetilde{\mathbf X}\big)^{-1}\widetilde{\mathbf X}^T\mathbf y
+=
+\begin{bmatrix}
+\frac{1}{n_1}\sum_{j=1}^{n_1} y_{1j}\\
+\frac{1}{n_2}\sum_{j=1}^{n_2} y_{2j}\\
+\frac{1}{n_3}\sum_{j=1}^{n_3} y_{3j}
+\end{bmatrix};$\\
+$\mathbf X\boldsymbol\beta=\widetilde{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_2\\\gamma_3\end{bmatrix}$;\quad
 $\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\tau_1\\\gamma_2=\mu+\tau_2\\\gamma_3=\mu+\tau_3\end{bmatrix}$\\
-\medskip
+$\gamma_i=\mu+\tau_i$\\
+$\displaystyle \hat{\mu}=\bar y_{\cdot\cdot}
+=\frac{1}{n}\sum_{i=1}^{k}\sum_{j=1}^{n_i} y_{ij}
+=\sum_{i=1}^{k}\frac{n_i}{n}\,\hat{\gamma}_i
+\quad\text{(weighted mean of group means)}$;\\
+$\hat{\tau}_i=\hat{\gamma}_i-\hat{\mu},
+\qquad
+\sum_{i=1}^{k}\frac{n_i}{n}\,\hat{\tau}_i=0
+\quad\text{(weighted average of }\hat{\tau}_i\text{ is 0).}$
+
 \subsubsection{C Treatment}
 $\mathbf C_{\text{trt}}=
 \left[
@@ -95,10 +123,11 @@ $\mathbf C_{\text{trt}}=
         \boldsymbol0_{(k-1)\times 1}&\mathbf I_{k-1}
     \end{array}
 \right]$;\quad
-$\overset{\sim}{\mathbf X}=\mathbf {XC}= \begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
-$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu_1\\\mu_2\\\mu_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_1+\gamma_2\\\gamma_1+\gamma_3\end{bmatrix}$;\quad
+$\widetilde{\mathbf X}=\mathbf {XC}= \begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&\boldsymbol0_{n_3}&\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\mathbf X\boldsymbol\beta=\widetilde{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu_1\\\mu_2\\\mu_3\end{bmatrix}=\begin{bmatrix}\gamma_1\\\gamma_1+\gamma_2\\\gamma_1+\gamma_3\end{bmatrix}$;\quad
 $\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\tau_1\\\gamma_2=\tau_2-\tau_1\\\gamma_3=\tau_3-\tau_1\end{bmatrix}$;\quad
-\medskip
+$\gamma_1=\mu+\tau_1$; $\gamma_k=\tau_k-\tau_1$.\\
+
 \subsubsection{C Sum}
 $\mathbf C_{\text{sum}}=
 \left[
@@ -110,10 +139,11 @@ $\mathbf C_{\text{sum}}=
 0\;\vdots&\boldsymbol{-1}_{1\times (k-1)}
 \end{array}
 \right]$;\quad
-$\overset{\sim}{\mathbf X}=\mathbf {XC}= \begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}\end{bmatrix}$;\quad
-$\mathbf X\boldsymbol\beta=\overset{\sim}{\mathbf X}\boldsymbol\gamma \implies \begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1+\gamma_2\\\gamma_1+\gamma_3\\\gamma_1-\gamma_2-\gamma_3\end{bmatrix}$;\quad
+$\widetilde{\mathbf X}=\begin{bmatrix}\boldsymbol1_{n_1}&\boldsymbol0_{n_1}&\boldsymbol0_{n_1}\\\boldsymbol1_{n_2}&\boldsymbol1_{n_2}&\boldsymbol0_{n_2}\\\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}&-\boldsymbol1_{n_3}\end{bmatrix}$;\quad
+$\begin{bmatrix}\mu+\tau_1\\\mu+\tau_2\\\mu+\tau_3\end{bmatrix}=\begin{bmatrix}\gamma_1+\gamma_2\\\gamma_1+\gamma_3\\\gamma_1-\gamma_2-\gamma_3\end{bmatrix}$;\quad
 $\widehat{\boldsymbol\gamma}=\begin{bmatrix}\gamma_1=\mu+\frac{1}{3}\sum_{i=1}^3\tau_i\\\gamma_2=\mu+\tau_1-\frac{1}{3}\sum_{i=1}^3\tau_i\\\gamma_3=\mu+\tau_2-\frac{1}{3}\sum_{i=1}^3\tau_i\end{bmatrix}$\\
-\medskip
+$\gamma_1=\mu+\frac{1}{k}\sum\tau_i$.\\
+
 \subsection{Estimable}
 $\mathbf t^T\boldsymbol\beta$ is estimable if $\exists\;\mathbf c$  such that $\mathbb E [\mathbf c^T\mathbf y]=\mathbf t^T\boldsymbol\beta$ (6.3).\\
 \textbf{Always estimable}:
@@ -124,177 +154,251 @@ $\mathbf t^T\boldsymbol\beta$ is estimable if $\exists\;\mathbf c$  such that $\
     \item Any linear contrast that sum to 0 ($\sum_{i=1}^k a_i\tau_i$, with $\sum a_i=0$).
 \end{itemize}
 \textbf{Not estimable}: $\mu$ by itself; individual $\tau_i$ by itself.\\
-\medskip
-$\mathbf t^T\boldsymbol\beta=\mathbf c^T\mathbf X\boldsymbol\beta=\mathbf c^T\overset{\sim}{\mathbf X}\boldsymbol\gamma$\\
+
+$\mathbf t^T\boldsymbol\beta=\mathbf c^T\mathbf X\boldsymbol\beta=\mathbf c^T\widetilde{\mathbf X}\boldsymbol\gamma$\\
 If $\mathbf t_i^T\boldsymbol\beta$ estimable, then $z=a_1\mathbf t_1^T\boldsymbol\beta+\dots+a_k\mathbf t_k^T\boldsymbol\beta$ is estimable (6.6).\\
 \textbf{Treatment contrast}: $z=a_1(\mu+\tau_1)+\dots+a_k(\mu+\boldsymbol\tau_k)$ is estimable.\\
 $\tau_i-\tau_j=(\mu+\tau_i)-(\mu+\tau_j)$ estimated by $\bar{y}_i-\bar{y}_j$\\
-\newpage
-\section{General Linear Hypothesis (GLH) Test — Quick Sheet}
 
-\textbf{Model \& Hypothesis.}
-\[
-y=X\beta+\varepsilon,\quad \varepsilon\sim(0,\sigma^2 I_n),\qquad
-H_0:\;L\beta=\delta,\; L\in\mathbb R^{r\times p},\; \mathrm{rank}(L)=r
-\]
+\subsection{Testability}
+Hypothesis $H_0$ is testable if $\exists$ estimable $\mathbf t_i^T\boldsymbol\beta$ such that $H_0$ is true $\Leftrightarrow\mathbf t_1^T\boldsymbol\beta=\dots=\mathbf t_m^T\boldsymbol\beta=0$ and $\mathbf t_1,\dots,\mathbf t_m$ are linearly independent (6.7).\\
+$H_0:\mathbf L\boldsymbol\beta=\boldsymbol0$. $\mathbf L=[t_1^T\dots t_m^T]^T$ is $m\times p$, rank $m$, each $\mathbf t_i^T\boldsymbol\beta$ estimable.\\
 
-\textbf{(1) Put the constraint in estimates.}
-\[
-\text{Gap vector: } g:=L\hat\beta-\delta
-\]
+\subsection{Hypothesis Testing}
+$f^\ast=\frac{(L\widehat{\boldsymbol\beta})^T[\widetilde{\mathbf L}(\widetilde{\mathbf X}^T \widetilde{\mathbf X})^{-1}\widetilde{\mathbf L}^T]^{-1} \left(L\widehat{\boldsymbol\beta}\right) / m}{SS_{\mathrm{res}}/(n-r)} \sim F_{m,n-r}$\\
+$m=\mathrm{r}(\widetilde{\mathbf L}), r=\mathrm{r}(\widetilde{\mathbf X})$; $\widetilde{\mathbf L}$ is $m\times r$ matrix such that $\widetilde{\mathbf L}\boldsymbol\gamma=\mathbf L\boldsymbol\beta$.\\
 
-\textbf{(2) Reparameterise if $X$ is not full rank.} Pick full-rank $C$ so that $\tilde X:=XC$ has independent columns and $X\beta=\tilde X\gamma$. Rewrite $H_0$ as $\tilde L\gamma=\delta$ and proceed with tildes.
+\subsection{Orthogonal Contrasts}
+In a one-way ANOVA model, treatment contrasts $\sum_{i=1}^k a_i\mu_i$ and $\sum_{i=1}^k b_i\mu_i$ are orthogonal $\iff\sum_{i=1}^k \frac{a_ib_i}{n_i}=0$ (6.8).\\
+If each sub-population is equally sampled: $\sum_{i=1}^k a_ib_i=0$.\\
+Each ortho. contrast can be tested independently of each other.\\
+SS of ortho. contrasts can be broken down into SS for each contrast.\\
 
-\textbf{(3) Gram matrix.}
-\[
-G:=X^\top X\quad (\text{or } \tilde G:=\tilde X^\top \tilde X)
-\]
+\section{Two-Way ANOVA}
+$y_{ijk}=\mu+\tau_i+\beta_j+\epsilon_{ijk}$ for $i=1, \dots, I; j=1,\dots,J; k=1,\dots,n_{ij}$.\\
 
-\textbf{(4) Hat matrix \& residual sum of squares.}
-\[
-H:=X(X^\top X)^{-1}X^\top,\quad \hat y=Hy,\quad
-SS_{\mathrm{Res}}:=y^\top(I-H)y,\quad \mathrm{MSE}:=\frac{SS_{\mathrm{Res}}}{n-p}
-\]
-
-\textbf{(5) Constraint on $\hat\beta$.}
-\[
-\hat\beta=(X^\top X)^{-1}X^\top y,\qquad
-S:=L(X^\top X)^{-1}L^\top
-\]
-
-\textbf{(6) ``Write half the top first'' then assemble the quadratic form.}
-\[
-\text{Top (numerator part)}:\quad Q:=g^\top S^{-1}g
-\]
-
-\textbf{(7) Test statistic \& decision.}
-\[
-F=\frac{(Q/r)}{\mathrm{MSE}}=\frac{g^\top S^{-1}g/r}{SS_{\mathrm{Res}}/(n-p)}
-\ \ \sim\ F_{r,\,n-p}\ \text{ under }H_0;
-\quad \text{reject if }F\ge F_{1-\alpha;\,r,\,n-p}.
-\]
-
-\textbf{Two-RSS (equivalent) form.} Fit restricted ($H_0$) and full models:
-\[
-F=\frac{\big(SS_{\mathrm{Res}}^{H_0}-SS_{\mathrm{Res}}^{H_1}\big)/r}{SS_{\mathrm{Res}}^{H_1}/(n-p)}
-\ \ \sim\ F_{r,\,n-p}.
-\]
-
-\textbf{Notes.} $X^\top X$ is the Gram matrix; $\mathrm{Var}(\hat\beta)=\sigma^2(X^\top X)^{-1}$. Reparameterisations that make $\tilde X$ full rank leave $\hat y$, $SS_{\mathrm{Res}}$, MSE, and the $F$ test unchanged.
-
+\subsection{Interaction}
+Interaction happens when one factor affects the effect of another factor.\\
+$y_{ijk}=\mu+\tau_i+\beta_j+\xi_{ij}+\epsilon_{ijk}$, where $\xi_{ij}$ is the interaction effect of factor 1 being at level $i$ at the same time that factor 2 is at level $j$.\\
 \medskip
-\section{Coding Choices for One-Way ANOVA (High-School Intuition)}
-We start from the over-parameterised model with intercept:
-\[
-\beta=\begin{bmatrix}\mu\\ \tau_1\\ \vdots\\ \tau_k\end{bmatrix},\quad
-\text{and reparameterise } \beta=C\,\gamma \text{ so } \tilde X=XC \text{ is full rank.}
-\]
-Use the coding that matches how you want to \emph{explain} results.
-
-\subsection{Treatment (Reference) Coding: ``each group vs a baseline''}
-Pick a baseline level (say level $k$). Keep intercept and $k-1$ group effects vs baseline.
-\[
-\gamma=\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\end{bmatrix},\qquad
-C_{\text{treat}}=
-\begin{bmatrix}
-1 & 0      & \cdots & 0 \\
-0 & 1      & \cdots & 0 \\
-\vdots & \vdots & \ddots & \vdots \\
-0 & 0      & \cdots & 1 \\
-0 & 0      & \cdots & 0
-\end{bmatrix}_{(k+1)\times k},
-\quad
-\beta=
-\begin{bmatrix}\mu\\ \theta_1\\ \vdots\\ \theta_{k-1}\\ 0\end{bmatrix}.
-\]
-\textbf{Concrete for $k=3$:}
-\[
-C_{\text{treat}}=
-\begin{bmatrix}
-1&0&0\\
-0&1&0\\
-0&0&1\\
-0&0&0
-\end{bmatrix},\quad
-\gamma=(\mu,\theta_A,\theta_B),\quad
-\theta_A=\tau_A,\ \theta_B=\tau_B,\ \tau_C=0.
-\]
-\textit{How you'd say it (scores $A=70,B=80,C=90$ with $C$ baseline):}
-Intercept $\approx 90$; $A$ is $-20$ vs $C$, $B$ is $-10$ vs $C$.
-
-\subsection{Sum (Effect) Coding: ``each group vs the overall average''}
-Enforce $\sum_{i=1}^k\tau_i=0$. Keep $k-1$ independent effects; the last is implied.
-\[
-\gamma=\begin{bmatrix}\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\end{bmatrix},\qquad
-C_{\text{sum}}=
-\begin{bmatrix}
-1 & 0      & \cdots & 0 \\
-0 & 1      & \cdots & 0 \\
-\vdots & \vdots & \ddots & \vdots \\
-0 & 0      & \cdots & 1 \\
-0 & -1     & \cdots & -1
-\end{bmatrix}_{(k+1)\times k},
-\quad
-\beta=
-\begin{bmatrix}
-\mu\\ \alpha_1\\ \vdots\\ \alpha_{k-1}\\ -\sum_{j=1}^{k-1}\alpha_j
-\end{bmatrix}.
-\]
-\textbf{Concrete for $k=3$:}
-\[
-C_{\text{sum}}=
-\begin{bmatrix}
-1&0&0\\
-0&1&0\\
-0&0&1\\
-0&-1&-1
-\end{bmatrix},\quad
-\gamma=(\mu,\alpha_A,\alpha_B),\ 
-\tau_C=-(\alpha_A+\alpha_B).
-\]
-\textit{How you'd say it (scores $70,80,90$):}
-Grand mean $=80$ (intercept). $A$ is $-10$ from average, $B$ is $0$, so $C$ is $+10$ (they must sum to $0$).
-
-\subsection{Basic (Cell-Means) Coding: ``parameters are the group means''}
-Let parameters \emph{be} the group means $m_i=\mu+\tau_i$; no baseline, no sums.
-\[
-\gamma=\begin{bmatrix}m_1\\ \vdots\\ m_k\end{bmatrix},\qquad
-\bar m=\frac{1}{k}\sum_{i=1}^k m_i,\quad
-\mu=\bar m,\ \tau_i=m_i-\bar m,
-\]
-\[
-C_{\text{basic}}=
-\begin{bmatrix}
-\frac{1}{k}\mathbf 1_k^\top\\[3pt]
-I_k-\frac{1}{k}\mathbf 1_k\mathbf 1_k^\top
-\end{bmatrix}\in\mathbb R^{(k+1)\times k},
-\quad
-\beta=
-\begin{bmatrix}
-\bar m\\ m_1-\bar m\\ \vdots\\ m_k-\bar m
-\end{bmatrix}.
-\]
-\textbf{Concrete for $k=3$:}
-\[
-C_{\text{basic}}=
-\begin{bmatrix}
-\frac{1}{3}&\frac{1}{3}&\frac{1}{3}\\
-\frac{2}{3}&-\frac{1}{3}&-\frac{1}{3}\\
--\frac{1}{3}&\frac{2}{3}&-\frac{1}{3}\\
--\frac{1}{3}&-\frac{1}{3}&\frac{2}{3}
-\end{bmatrix},\quad \gamma=(m_A,m_B,m_C).
-\]
-\textit{How you'd say it (scores $70,80,90$):}
-The parameters are simply the group means: $A=70,\ B=80,\ C=90$.
-
+No interaction $\iff (\xi_{ij}-\xi_{ij'})-(\xi_{i'j}-\xi_{i'j'})=0$, $\forall i\neq i', j\neq j'$ (6.9).\\
+2 factors have $(I-1)(J-1)$ non-redundant interaction terms.\\
+Total number of terms = $IJ$.
 \medskip
+Example: 2-factor design with 2 levels each. No interaction: $H_0:\mathbf L\boldsymbol\beta=\boldsymbol0$, where $\mathbf L=\begin{bmatrix}0&0&0&0&0&1&-1&-1&1\end{bmatrix}$, $\boldsymbol\beta=\begin{bmatrix}\mu&\tau_1&\tau_2&\beta_1&\beta_2&\xi_{11}&\xi_{12}&\xi_{21}&\xi_{22}\end{bmatrix}^T$\\
+\medskip
+If 1 sample per combination of factors, cannot test for interaction: $n=r=r(\widetilde{\mathbf X})\implies \mathrm{df}(\mathrm{SS}_\mathrm{res} )=n-r=0$.\\
+
+\section{ANCOVA}
+For linear models with categorical+continuous predictors:
+$y_{ij}=\mu+\tau_i+\beta x_{ij}+\xi_{i}x_{ij}+\epsilon_{ij}$. (\texttt{R:resp$\sim$factor * pred})\\
+No interaction: $y_{ij}=\mu+\tau_i+\beta x_{ij}+\epsilon_{ij}$. (\texttt{R:resp$\sim$factor+pred})\\
+
+\section{Module 7: Binomial Regression Model}
+$Y_i\sim\mathrm{Bin}(m_i, p_i)$, $i=1,\dots,n$, independent.\\
+Log odds for $p=\alpha+\beta t$\\
+
+\subsection{Odds and Odds Ratio (Binary)}
+
+$\mathrm{Odds}=\frac{p}{1-p}$;
+$\mathrm{logit}(p)=\log(\mathrm{Odds})=\log(\frac{p}{1-p})=\log(p)-\log(1-p)$\\
+$\text{Odds Ratio (OR)}=\frac{p_1/(1-p_1)}{p_2/(1-p_2)}=\frac{p_1/q_1}{p_2/q_2}=\frac{p_1 q_2}{p_2 q_1}$\\
+$\log(\text{Odds Ratio (OR)})=\log(\frac{p_1/(1-p_1)}{p_2/(1-p_2)})=\log(\frac{p_1}{1-p_1})-\log(\frac{p_2}{1-p_2})=\mathrm{logit}(p_1)-\mathrm{logit}(p_2)$\\
+
+% Conventions: J = number of classes; j ∈ {1,…,J} is a class index.
+% a and b denote two observations with feature rows x_a, x_b.
+% Baseline class is J (so β_J = 0 and η_{·J} = 0).
+
+% Multinomial logit: comparing two observations (compact cheatsheet)
+% Conventions: J = #classes; j∈{1,…,J}; a,b = observations with rows x_a, x_b; baseline = J (β_J=0).
+
+% Odds vs baseline (within one obs)
+$\text{(Multinomial logit; $J$ classes; baseline }J\text{ with }\beta_J=0)$\
+$\eta_{ij}=x_i^\top\beta_j$; $\quad p_j(x_i)=\dfrac{e^{\eta_{ij}}}{\sum_{k=1}^{J} e^{\eta_{ik}}}$\
+$\mathrm{odds}{j{:}J}(x_i)=\dfrac{p_j(x_i)}{p_J(x_i)}=e^{,\eta{ij}-\eta_{iJ}}$\
+$\mathrm{OR}{a:b}^{,j{:}J}=\dfrac{\mathrm{odds}{j{:}J}(x_a)}{\mathrm{odds}{j{:}J}(x_b)}=\exp!\big((x_a-x_b)^\top\beta_j\big)=\exp!\big((\eta{aj}-\eta_{aJ})-(\eta_{bj}-\eta_{bJ})\big)$\
+$\text{With }\beta_J=\mathbf{0}\ (\eta_{\cdot J}=0):\ \ \mathrm{OR}{a:b}^{,j{:}J}=\exp(\eta{aj}-\eta_{bj})$\
+$\text{Binary special case }(J=2):\ \ \mathrm{OR}_{a:b}=\exp(\eta_a-\eta_b),\ \ \eta_i=x_i^\top\beta$
+
+\subsection{Link Functions}
+$g(p_i)=\eta_i=\mathbf x_i^T\boldsymbol\beta=\beta_0+\beta1x_{i1}+\dots+\beta_qx_{iq}$, where $\mathbf x_i$ are known predictors and $\boldsymbol\beta$ are unknown parameters.\\
+\textbf{Logit (logistic or log-odds) function}: $\eta=g(p)=\log\frac{p}{1-p}=\log(p)-\log(1-p)$\\
+$p=g^{-1}(\eta)=\frac{1}{1+\exp(-\eta)}=\frac{\exp(\eta)}{1+\exp(\eta)}$\\
+\textbf{Probit or normal quantiles}: $\eta=g(p)=\Phi^{-1}(p)$;
+$p=g^{-1}(\eta)=\Phi(\eta)$\\
+\textbf{Complementary log-log}: $\eta=g(p)=\log(-\log(1-p))$;
+$p=g^{-1}(\eta)={1-\exp(-e^\eta)}$\\
+
+\subsection{Likelihood}
+$\ell(\boldsymbol\beta)=\log\mathcal L(\boldsymbol\theta;\mathbf y)=\log\mathbb P(\mathbf Y=\mathbf y)=\log\prod_ix\mathbb P(Y_i=y_i)$
+$=\sum_{i=1}^n\log\mathbb P(Y_i=y_i)=\sum_{i=1}^n\log\left(\binom{m_i}{y_i}p_i^{y_i}(1-p_i)^{m_i-y_i}\right)$\\
+$=c+\sum_{i=1}^n\{y_y\log(g^{-1}({\eta_i}))+(m_i-y_i)\log(1-g^{-1}(\eta_i))\}$\\
+
+\subsection{MLE}
+$\ell(\boldsymbol\beta)=\ell(\boldsymbol\theta;\mathbf y)=\sum_i\log f_i(y_i;\theta)$\\
+Under certain \textbf{regularity conditions}, MLE is consistent, asymptotically normal, and asymptotically efficient.\\
+
+\subsubsection{Consistent}
+$\mathbb P(\|\widehat{\boldsymbol\theta}-\boldsymbol\theta^\ast\|>\epsilon)\rightarrow0\text{ as }n\rightarrow\infty$.\\
+
+\subsubsection{Asymptotic Normality}
+Observed Information $\mathcal J(\boldsymbol\theta)=\mathcal J_{jk}(\boldsymbol\theta)=-\frac{\partial^2\ell(\boldsymbol\theta)}{\partial\theta_j\partial\theta_k}=-\frac{\partial^2\ell(\boldsymbol\theta)}{\partial\boldsymbol\theta\partial\boldsymbol\theta^T}$.\\
+Fisher Information $\mathcal{I}(\boldsymbol\theta)=\mathbb E\mathcal J(\boldsymbol\theta;\mathbf Y)$.\\
+$\mathcal J(\widehat{\boldsymbol\theta})$ used to appoximate $\mathcal{I}(\boldsymbol\theta^\ast)$.\\
+When $|\mathcal{I}(\boldsymbol\theta)|$ is large, under \textbf{regularity conditions}, dist. of $\widehat{\boldsymbol\theta}\approx MVN(\boldsymbol\theta^\ast,\mathcal{I}(\boldsymbol\theta^\ast)^{-1})$.
+$(\boldsymbol\theta^\ast)^{1/2}(\widehat{\boldsymbol\theta}-\boldsymbol\theta^\ast)\overset{d}{\rightarrow}MVN(\boldsymbol0, \mathbf I)$\\
+\medskip
+$\mathbb E\frac{\partial\ell(\boldsymbol\theta;\mathbf Y)}{\partial\theta_j}=0$;
+$-\mathbb E\frac{\partial^2\ell(\boldsymbol\theta;\mathbf Y)}{\partial\theta_j\partial\theta_k}=\mathbb E\left(\frac{\partial\ell(\boldsymbol\theta;\mathbf Y)}{\partial\theta_j}\frac{\partial\ell(\boldsymbol\theta;\mathbf Y)}{\partial\theta_k}\right)$.\\
+
+\subsubsection{Efficiency}
+Cramér-Rao Lower Bound (CRLB) under mild \textbf{regularity conditions}:\\
+If $\widehat{\boldsymbol\theta}$ is any unbiased estimator of $\boldsymbol\theta^\ast$, then:
+$\mathrm{Var}(\widehat{\boldsymbol\theta})-\mathcal{I}(\boldsymbol\theta^\ast)^{-1}$ is positive semidefinite.
+MLE is asymptotically efficient as $n\rightarrow\infty$.
+
+\subsubsection{Wald CI}
+$\mathbf t^T\widehat{\boldsymbol\theta}\sim N(\mathbf t^T\boldsymbol\theta^\ast,\mathbf t^T\mathcal{I}(\boldsymbol\theta^\ast)^{-1}\mathbf t)$\\
+Take $\mathbf t=v_i$, where $v_i$ is a column vector with 1 as the $i$-th entry and 0 otherwise.
+Then, $\hat{\theta}_i\approx N(\theta_i^\ast,(\mathcal{I}(\boldsymbol\theta^\ast)^{-1})_{i,i})$.\\
+$100(1-\alpha)\%\text{ CI for }\theta_i^\ast\approx\hat{\theta}_i\pm z_{\alpha/2}\sqrt{\mathcal{I}(\widehat{\boldsymbol\theta})^{-1})_{i,i}}\text{ where }\Phi(z_{\alpha/2})=1-\alpha/2$.\\
+CI for $\eta_i=\mathbf x_i^T\pm z_{\alpha/2}\sqrt{\mathbf x_i^T\mathcal{I}(\widehat{\boldsymbol\theta})^{-1})\mathbf x_i}$\\
+If $\mathcal{I}$ unavailable, approximate using observed information $\mathcal J$.\\
+\medskip
+Wald's test statistic: $\widehat{Z}=\widehat{\beta_i}/SE(\widehat{\beta_i})$\\
+\medskip
+CI for log-odds (multinomial, baseline $J$): $\log\!\frac{p_{ij}}{p_{iJ}}=\mathbf x_i^{\top}\boldsymbol\beta_j$ so
+$100(1-\alpha)\%\text{ CI for }\log\!\frac{p_{ij}}{p_{iJ}}\approx
+\mathbf x_i^{\top}\widehat{\boldsymbol\beta}_j\ \pm\ z_{\alpha/2}\sqrt{\ \mathbf x_i^{\top}\,\big[\mathcal{I}(\widehat{\boldsymbol\theta})^{-1}\big]_{\beta_j,\beta_j}\,\mathbf x_i\ }$\\
+(where $\big[\mathcal{I}(\widehat{\boldsymbol\theta})^{-1}\big]_{\beta_j,\beta_j}$ is the block of the covariance matrix for $\widehat{\boldsymbol\beta}_j$).\\
+
+\textbf{Linear combinations:} For $\theta=\boldsymbol c^{\top}\boldsymbol\beta$ where $\boldsymbol c=\eta_1-\eta_2$ (or $\boldsymbol c$ selects coefficients):
+$\text{CI: }\boldsymbol c^{\top}\widehat{\boldsymbol\beta}\ \pm\ z_{\alpha/2}\text{SE}(\boldsymbol c^{\top}\widehat{\boldsymbol\beta})\quad\text{where}\quad\text{SE}^2=\boldsymbol c^{\top}\!\underbrace{\mathcal{I}(\widehat{\boldsymbol\theta})^{-1}}_{\text{Var}(\widehat{\boldsymbol\beta})}\boldsymbol c$
+For $\beta_1-\beta_2$: $\text{Var}(\widehat{\beta}_1-\widehat{\beta}_2)=\text{Var}(\widehat{\beta}_1)+\text{Var}(\widehat{\beta}_2)-2\,\text{Cov}(\widehat{\beta}_1,\widehat{\beta}_2)$
+
+\subsubsection{CI for Probabilities}
+CI ($L, U$) contains linear combination of $\mathbf t^T\boldsymbol\theta^\ast$, same as the event that ($g^{-1}(L),g^{-1}(U)$) contains $g^{-1}(\mathbf t^T\boldsymbol\theta^\ast)$.\\
+\medskip
+$2\ell(\widehat{\boldsymbol\theta})-2\ell(\boldsymbol\theta^\ast)\sim\chi_k^2$ where $k=\begin{cases}q+1&\text{if }\mathbf X\text{ is full rank,}\\\mathrm{r}(\mathbf X)&\text{if }\mathbf X\text{ is not full rank.}\end{cases}$\\
+$100(1-\alpha)\% \text{ CR for }\boldsymbol\theta=\{\boldsymbol\theta:2\ell(\widehat{\boldsymbol\theta})-2\ell(\boldsymbol\theta)\le\chi_{k;1-\alpha}^2\}$.\\
+
+\subsection{Nested Models}
+A \textit{model} is a set of distribution functions. E.g. zero-centred Gaussian: $\mathcal M=\{\Phi_{0,\sigma}:\sigma\in\mathbb R^+\}$, where $\Phi_{\mu,\sigma}$ is CDF normal dist. mean $\mu$, SD $\sigma$.\\
+\medskip
+$\mathcal M_A$ is \textit{nested} within $\mathcal M_B$ if $\mathcal M_A\subseteq\mathcal M_B$.\\
+If $\mathcal M_A\subset\mathcal M_B$, $\mathcal M_B$ has more parameters than $\mathcal M_A$.\\
+\medskip
+Consider data $\mathbf y=(y_1,\dots,y_n)^T$, joint distribution $F$.\\
+Consider models A and B such that $\mathcal M_A\subset\mathcal M_B$. Suppose model B has $s$ more parameters than model A.\\
+Then: $\mathcal M_A=\{G_{(\boldsymbol\theta^A,\boldsymbol0_s)}:(\boldsymbol\theta^A,\boldsymbol0_s)\in\boldsymbol\Theta\}$ and $\mathcal M_B=\{G_{\boldsymbol\theta^B}:\boldsymbol\theta^B\in\boldsymbol\Theta\}$.\\
+Model A is correct if $F\in\mathcal M_A$.\\
+\medskip
+\textbf{Suppose model A is correct}. Then $\exists\;\boldsymbol\theta^{\ast A}$ such that $(\boldsymbol\theta^A,\boldsymbol0_s)\in\boldsymbol\Theta$ and $F=G_{(\boldsymbol\theta^{\ast A},\boldsymbol0_s)}$.
+
+\textbf{Likelihood ratio test stat}. = $\Lambda=-2\log\frac{\mathcal{L}(\widehat{\boldsymbol\theta}^A)}{\mathcal{L}(\widehat{\boldsymbol\theta}^B)}=-2(\ell(\widehat{\boldsymbol\theta}^A)-(\widehat{\boldsymbol\theta}^B))\overset{asymp.}{\sim}\chi^2_{s\cdot}$.\\
+s = Model A param - Model B param
+
+If model A is correct, likelihood ratio will be large, so that $-2(\ell(\widehat{\boldsymbol\theta}^A)-(\widehat{\boldsymbol\theta}^B))$ is small. Unlikely to reject $H_0$ for one-tailed test: $H_0:$Model A is correct. $H_1:$ Model A is not correct.
+\medskip
+\textbf{Suppose model A is incorrect and model B is correct}. i.e. $F\notin\mathcal{M}_A, F\in\mathcal{M}_B$. Then $\exists\;\boldsymbol\theta^{\ast B}$ such that $\boldsymbol\theta^{\ast B}\in\boldsymbol\Theta$, $F=G_{(\boldsymbol\theta^{\ast B})}$, and the last $s$ entries are not all zeroes.\\
+Then, likelihood ratio ${\mathcal{L}(\widehat{\boldsymbol\theta}^A)}/{\mathcal{L}(\widehat{\boldsymbol\theta}^B)}$ will be small, so that $\Lambda$ is large. Hence reject $H_0$ in the test:  $H_0:$Model A is correct. $H_1:$ Model A is not correct.\\
+Reject $H_0$ for large values of statistic $\Lambda$.\\
+\medskip
+\subsection{Inference}
+Likelihood ratios are used for inference: choose between nested models, or decide if parameters are non-zero.\\
+Wald's statistic not equivalent to likelihood ratio statistic in Binomial.\\
+
+\subsection{Saturated Model}
+Saturated model$\Leftrightarrow \mathrm{dim}(\Theta)=n:$ invs many parameters as sample size $n$.\\
+In binomial regression model, statustrated log-likelihood is $\ell(p_1,\dots,p_n)=\sum_{i=1}^n\log\left(\binom{m_i}{y_i}p_i^{y_i}(1-p_i)^{m_i-y_i}\right)$\\
+The MLEs are $\widetilde{p}_i=y_i/m_i, i=1,\dots,n$.\\
+
+\subsection{l,Deviance}
+Used to judge model adequacy.
+For binomial, under fitted model, let $\widehat{p}_i=g^{-1}(\mathbf x_i^T\widehat{\boldsymbol\beta})$ be our (not full) model estimate of $p_i$, then deviance is:
+$D=-2\sum_{i=1}^n\left(y_i[\log\widehat{p}_i-\log(\frac{y_i}{m_i})]+(m_i-y_i)[\log(1-\widehat{p}_i)-\log(1-\frac{y_i}{m_i})]\right)$\\
+$D=-2\sum_{i=1}^n\left(y_i\log(\frac{\widehat y_i}{y_i})+(m_i-y_i)\log(\frac{m_i-\widehat y_i}{m_i-y_i})\right)$ where $\widehat{y}_i=m_i\widehat{p}_i$ is the $i$-th fitted value using the model.\\
+\medskip
+For \textbf{binomial regression model}:
+If $m_i\widehat{p_i}$ and $m_i(1-\widehat{p_i})$ are large enough ($\ge 5$ is common rule of thumb), then $D\approx\chi^2_{n-k}$, where $k$ is the number of parameters (including $\beta_0$).\\
+Deviance can be used as test for model adequacy. If $D$ is too large (as compared to $\chi^2_{n-k}$), the model is missing something.\\
+\medskip
+For binomial with small $m_i$, cannot use deviance directly to test model adequacy, but can use it to compare models.\\
+If the models have deviance $D^A, D^B$, and model A nested within model B, then:
+$D^A-D^B=-2\log\frac{\mathcal{L}(\widehat{\boldsymbol\theta}^A)}{\mathcal{L}(\widehat{\boldsymbol\theta}^B)}$.\\
+Difference in deviances is GLM's analogue for difference in $SS_{res}$ in nested linear models.\\
+\medskip
+% ===== Module 8: GLS & Poisson GLM (added) =====
+\section*{Module 8: GLS \& Poisson GLM}
+\subsection*{GLS/WLS for non-$\sigma^2 I$ errors}
+$y=X\beta+\varepsilon$, $\mathrm{Var}(\varepsilon)=V$ (pd). \\
+Transform: $\,\widetilde y=V^{-1/2}y,\ \widetilde X=V^{-1/2}X\,$ so OLS applies.\\
+\textbf{Estimator: }$\widehat\beta_{\text{GLS}}=(X^\top V^{-1}X)^{-1}X^\top V^{-1}y,\quad
+\widehat\sigma^2=\frac{(y-X\widehat\beta)^\top V^{-1}(y-X\widehat\beta)}{n-p}$.\\
+WLS is GLS with $V=\mathrm{diag}(\sigma_i^2)$ (weights $1/\sigma_i^2$).\\
+
+\subsection*{Exponential family $\Rightarrow$ GLM}
+$f(y;\theta,\phi)=\exp\!\left(\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\right)$.
+{\small
+\aboverulesep = 0pt
+\belowrulesep = 0pt
+\begin{tabular}{@{}lll|@{}lll}
+\toprule
+Family & $\theta$& $\phi$& $b(\theta)$& $a(\phi)$&$c(y,\phi)$\\
+\midrule
+Norm& $\mu$ & $\sigma^2$ & $\frac{\theta^2}{2}$& $\phi$&$-\frac{1}{2}(\frac{y^2}{\phi}+\log(2\pi\phi)$\\
+Poiss& $\log\lambda$& 1 & $e^\theta$& $\phi$&$-\log\lambda!$\\
+ Binom& $\log\frac{p}{1-p}$& 1 & $m\log(1+e^\theta)$& $\phi$&$\log\binom{m}{y}$\\
+Scl Bin& $\log\frac{p}{1-p}$& $\frac{1}{m}$& $\log(1+e^\theta)$& $\phi$&$\log\binom{m}{my}$\\
+\bottomrule
+\end{tabular}
+}\\
+$E(Y)=\mu=b'(\theta)$; $\mathrm{Var}(Y)=b''(\theta)\,a(\phi)$.\\
+Canonical link: $g(\mu)=\theta=(b')^{-1}(\mu)$.\\
+{\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Family &  $\theta$&canonical $g(\mu)$ & variance $\psi(\mu)$\\
+\midrule
+Normal &  $\mu$ &$\mu$ & $1$\\
+Poisson &  $\log\lambda=$&$\log\mu$ & $\mu$\\
+ Binomial &  $\log\frac{p}{1-p}=$&$\log\frac{\mu}{1-\mu}$ &$\mu(1-\frac{\mu}{m})$\\
+Scaled Bin&  $\log\frac{p}{1-p}=$&$\log\frac{\mu}{1-\mu}$ & $\mu(1-\mu)$\\
+\bottomrule
+\end{tabular}
+}
+\subsection*{Newton–Raphson method}
+
+\subsection*{Poisson GLM essentials}
+$Y_i\sim\text{Poisson}(\mu_i)$, $\log\mu_i=x_i^T\beta$.\\
+Deviance: $D=2\sum_i\{y_i\log(y_i/\hat\mu_i)-(y_i-\hat\mu_i)\}$ (take $0$ if $y_i=0$).\\
+Adequacy (rule of thumb): $\hat\mu_i\gtrsim5$ (Binomial: $m_i\hat p_i,\ m_i(1-\hat p_i)\gtrsim5$).\\
+Nested GLMs: $\Delta D\approx\chi^2_{\Delta df}$ (Poisson/Binomial). Gaussian LM: $F=\frac{(\Delta D)/r}{\text{MSE}_F}\sim F_{r,n-p}$.\\
+Offsets/exposure: counts per $t_i$: use $\log t_i$ as \emph{offset}. Diagnostics: Cook's $D$, leverage $h_{ii}$, jackknife residuals; if $\log$-covariate hits 0, use $\log(x+c)$ (small $c$).\\
+\medskip
+When comparing Binomial or Poisson nested models: $\phi=1$, so LRT is:
+$\Lambda=\frac{(D^A-D^B)}{\widehat{\phi}}=\frac{(D^A-D^B)}{1}=\chi^2_s$\\
+\medskip
+When comparing Gaussian, Gamma, Inv Gamma: $\phi\neq 1$, estimate using Pearson $\chi^2$ statistic. Likelihood ratio test stat using scaled deviances follows F distribution:
+$\Lambda=\frac{(D^A-D^B)/s}{\widehat{\phi}}=\frac{(D^A-D^B)/s}{X^2/(n-p)}=F_{s,n-p_B}$\\
+% ===== Extra: NegBin, Overdispersion, Diagnostics, Contingency (added) =====
+\section*{Extra: NegBin \& Overdispersion}
+\textbf{NegBin alt. form: } $Y\sim\text{NegBin}(\mu,k)$ with
+$p(Y=y)=\binom{y+k-1}{y}\Big(\frac{\mu}{\mu+k}\Big)^y\Big(\frac{k}{\mu+k}\Big)^k$;
+as exp.\ family $\Rightarrow$ canonical $\theta=\log\frac{\mu}{\mu+k}$, link $g(\mu)=\log\mu$ (with $k$ fixed); $\mathrm{Var}(Y)=\mu(1+\mu/k)$.\\
+\textbf{Overdispersion: } $\widehat\phi=\frac{\text{Residual Deviance}}{n-p}$; if $\phi>1$, Poisson s.e.'s too small; prefer NB or use quasi-Poisson. AIC smaller $\Rightarrow$ better.\\
+\textbf{GLM comparison: } $\Delta D=D_R-D_F\sim\chi^2_r$ under $H_0$ (nested). Gaussian: $F=\frac{(\Delta D)/r}{\text{MSE}_F}$.\\
+\textbf{Leverage vs jackknife residual: } large $h_{ii}$ means $\hat y_i$ sensitive to $y_i$; jackknife/studentised-deleted residual flags outliers even when $h_{ii}$ small.\\
+
+\section*{Contingency tables}
+$Y_{ij}\sim\text{Multinomial}(n,\pi_{ij})$, $E[Y_{ij}]=n\pi_{ij}$; $Y_{i\cdot}=\sum_j Y_{ij}$, $Y_{\cdot j}=\sum_i Y_{ij}$.\\
+Example: $p(Y_{11}\mid Y_{12}=b, Y_{\cdot\cdot}=n)=\binom{n-b}{Y_{11}}\pi_{11}^{Y_{11}}(1-\pi_{11})^{n-b-Y_{11}}$.\\
 \medskip
 \vfill
-Last updated:
-2025-09-12 T00-50-58\\
+Last updated: 2025-11-14 T10-28-48\\
 Compiled: \DTMnow\\
 \hrule
-Enoch Ko (147934), University of Melbourne. Seat No.
+Enoch Ko (147934), University of Melbourne. Seat REB West-0434.
 $180/100 = 1.8$min.
 $1 \mapsto 1.8 / 2 \mapsto 3.6 / 3 \mapsto 5.4 / 4 \mapsto 7.2 / 5 \mapsto 9 / 6 \mapsto 10.8$\\
 \end{multicols}
